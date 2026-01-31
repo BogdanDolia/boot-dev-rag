@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import argparse
+import json
+import string
 
 
 def main() -> None:
@@ -15,9 +17,20 @@ def main() -> None:
     match args.command:
         case "search":
             print(f"Searching for: {args.query}")
-            pass
+            movies = json.load(open("data/movies.json"))
+            movies_by_id = {movie["id"]: movie for movie in movies["movies"]}
+            n = 1
+            for movie_id, movie in movies_by_id.items():
+                if normalize_query(args.query) in normalize_query(movie["title"]):
+                    print(f"{n}. {movie["title"]}")
+                    n += 1
         case _:
             parser.print_help()
+
+
+def normalize_query(query: str) -> str:
+    query = query.translate(str.maketrans('', '', string.punctuation))
+    return query.lower()
 
 
 if __name__ == "__main__":
