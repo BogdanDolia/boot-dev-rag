@@ -19,18 +19,41 @@ def main() -> None:
             print(f"Searching for: {args.query}")
             movies = json.load(open("data/movies.json"))
             movies_by_id = {movie["id"]: movie for movie in movies["movies"]}
-            n = 1
+            with open("data/stopwords.txt") as f:
+                stop_words = set(f.read().splitlines())
+
+            search_query = preprocess(args.query, stop_words)
             for movie_id, movie in movies_by_id.items():
-                if normalize_query(args.query) in normalize_query(movie["title"]):
-                    print(f"{n}. {movie["title"]}")
-                    n += 1
+                movie_query = preprocess(movie["title"], stop_words)
+                matches = [
+                    s for s in search_query
+                    for m in movie_query
+                    if (len(s) > 2 and s in m)
+                ]
+                if len(matches) > 0:
+                    print(f"- '{movie["title"]}'")
         case _:
             parser.print_help()
+
+
+def preprocess(text: str, stop_words: set[str]) -> list[str]:
+    normalized = normalize_query(text)
+    tokens = tokenize(normalized)
+    return remove_stop_words(tokens, stop_words)
 
 
 def normalize_query(query: str) -> str:
     query = query.translate(str.maketrans('', '', string.punctuation))
     return query.lower()
+
+
+def tokenize(query: str) -> list[str]:
+    return query.split()
+
+
+def remove_stop_words(query: list[str], stop_words: set[str]) -> list[str]:
+    res = [word for word in query if word not in stop_words]
+    return res
 
 
 if __name__ == "__main__":
