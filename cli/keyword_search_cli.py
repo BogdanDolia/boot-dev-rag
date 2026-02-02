@@ -4,6 +4,8 @@ import argparse
 import json
 import string
 
+from nltk.stem import PorterStemmer
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Keyword Search CLI")
@@ -39,7 +41,8 @@ def main() -> None:
 def preprocess(text: str, stop_words: set[str]) -> list[str]:
     normalized = normalize_query(text)
     tokens = tokenize(normalized)
-    return remove_stop_words(tokens, stop_words)
+    tokens_without_stop_words = remove_stop_words(tokens, stop_words)
+    return stemmer(tokens_without_stop_words)
 
 
 def normalize_query(query: str) -> str:
@@ -54,6 +57,11 @@ def tokenize(query: str) -> list[str]:
 def remove_stop_words(query: list[str], stop_words: set[str]) -> list[str]:
     res = [word for word in query if word not in stop_words]
     return res
+
+
+def stemmer(tokens: list[str]) -> list[str]:
+    stmr = PorterStemmer()
+    return [stmr.stem(token) for token in tokens]
 
 
 if __name__ == "__main__":
