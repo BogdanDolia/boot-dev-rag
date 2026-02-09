@@ -28,12 +28,13 @@ def main() -> None:
             for movie_id, movie in movies_by_id.items():
                 movie_query = preprocess(movie["title"], stop_words)
                 matches = [
-                    s for s in search_query
+                    s
+                    for s in search_query
                     for m in movie_query
                     if (len(s) > 2 and s in m)
                 ]
                 if len(matches) > 0:
-                    print(f"- '{movie["title"]}'")
+                    print(f"- '{movie['title']}'")
         case _:
             parser.print_help()
 
@@ -46,7 +47,7 @@ def preprocess(text: str, stop_words: set[str]) -> list[str]:
 
 
 def normalize_query(query: str) -> str:
-    query = query.translate(str.maketrans('', '', string.punctuation))
+    query = query.translate(str.maketrans("", "", string.punctuation))
     return query.lower()
 
 
