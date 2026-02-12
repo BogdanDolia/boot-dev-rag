@@ -28,31 +28,28 @@ def main() -> None:
     match args.command:
         case "search":
             print(f"Searching for: {args.query}")
-            movies = json.load(open("data/movies.json", encoding="utf-8"))
-            movies_by_id = {movie["id"]: movie for movie in movies["movies"]}
-            with open("data/stopwords.txt", encoding="utf-8") as f:
-                stop_words = set(f.read().splitlines())
+            try:
+                index = InvertedIndex()
+                index.load()
+                print("Index loaded successfully")
+            except FileNotFoundError as exc:
+                print(f"Error loading index: {exc}")
+                sys.exit(1)
 
-            search_query = preprocess(args.query, stop_words)
-            for _, movie in movies_by_id.items():
-                movie_query = preprocess(movie["title"], stop_words)
-                # This is a list comprehension that checks if the search query is in the movie query
-                # and if the length of the search query is greater than 2
-                matches = [
-                    s
-                    for s in search_query
-                    for m in movie_query
-                    if (len(s) > 2 and s in m)
-                ]
-                if len(matches) > 0:
-                    print(f"- '{movie['title']}'")
+            for s in args.query.split():
+                docs = index.get_documents(s)
+                i = 1
+                for doc in docs:
+                    if i > 5:
+                        break
+                    i += 1
+                    print(f"- '{index.docmap[doc]['title']}'")
+
         case "build":
             movies = json.load(open("data/movies.json", encoding="utf-8"))
             index = InvertedIndex()
             index.build(movies["movies"])
             index.save()
-            docs = index.get_documents("merida")
-            print(docs[0])
         case _:
             parser.print_help()
 
