@@ -4,6 +4,7 @@
 import sys
 import argparse
 import json
+import math
 
 from pathlib import Path
 
@@ -27,6 +28,9 @@ def main() -> None:
         "doc_id", type=int, help="Document ID to get the frequency for"
     )
     tf_parser.add_argument("term", type=str, help="Term to get the frequency for")
+
+    idf_parser = subparsers.add_parser("idf", help="")
+    idf_parser.add_argument("term", type=str, help="")
 
     args = parser.parse_args()
 
@@ -59,6 +63,15 @@ def main() -> None:
             index = InvertedIndex()
             index.load()
             print(index.get_term_frequency(args.doc_id, args.term))
+        case "idf":
+            index = InvertedIndex()
+            index.load()
+            for s in args.term.split():
+                docs = index.get_documents(s)
+            total_doc_count = len(index.docmap)
+            term_match_doc_count = len(docs)
+            idf = math.log((total_doc_count + 1) / (term_match_doc_count + 1))
+            print(f"Inverse document frequency of '{args.term}': {idf:.2f}")
         case _:
             parser.print_help()
 
